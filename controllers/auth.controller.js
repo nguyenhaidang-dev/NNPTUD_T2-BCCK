@@ -56,7 +56,7 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await User.create({
+    let user = await User.create({
       firstName,
       lastName,
       email,
@@ -65,12 +65,15 @@ exports.register = async (req, res) => {
       role: customerRole._id,
     });
 
+    // Populate role so frontend gets full role object
+    user = await User.findById(user._id).populate('role');
+
     // Remove password from response
     const userObject = user.toObject();
     delete userObject.password;
 
     // Generate token
-    const token = generateToken(user._id, user.role);
+    const token = generateToken(user._id, user.role._id);
 
     res.status(201).json({
       success: true,

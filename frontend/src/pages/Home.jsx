@@ -4,6 +4,8 @@ import { useCart } from '../context/CartContext';
 import toast from 'react-hot-toast';
 import { Search, Info } from 'lucide-react';
 
+import { Link } from 'react-router-dom';
+
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -90,16 +92,18 @@ const Home = () => {
             <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-muted)' }}>Không tìm thấy sản phẩm nào!</div>
           ) : (
             filteredProducts.map(product => (
-              <div key={product._id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                <div style={{ height: '220px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', marginBottom: '15px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {product.image ? (
-                    <img src={`http://localhost:5000${product.image}`} alt={product.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
-                  ) : (
-                    <span style={{ color: 'var(--text-muted)' }}>No Image</span>
-                  )}
-                </div>
-                
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>{product.name}</h3>
+              <div key={product._id} className="glass-panel hover-grow" style={{ padding: '20px', display: 'flex', flexDirection: 'column', position: 'relative', transition: 'transform 0.2s', cursor: 'pointer' }}>
+                <Link to={`/product/${product._id}`} style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{ height: '220px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '12px', marginBottom: '15px', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {product.image ? (
+                      <img src={`http://localhost:5000${product.image}`} alt={product.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)' }}>No Image</span>
+                    )}
+                  </div>
+                  
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }} className="text-gradient hover-underline">{product.name}</h3>
+                </Link>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '15px', flexGrow: 1 }}>{product.description}</p>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>

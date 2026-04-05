@@ -2,6 +2,7 @@ const Product = require('../schemas/Product');
 const Category = require('../schemas/Category');
 const Manufacturer = require('../schemas/Manufacturer');
 const Inventory = require('../schemas/Inventory'); // Added to auto-seed inventory
+const User = require('../schemas/User');
 const { getFileUrl, deleteFile } = require('../utils/upload');
 
 // @desc    Create a new product
@@ -92,7 +93,10 @@ exports.createProduct = async (req, res) => {
     await Inventory.create({
       product: product._id,
       quantityInStock: 500,
-      batchNumber: 'TEST-BATCH-01'
+      batchNumber: 'TEST-BATCH-01',
+      reorderLevel: 20,
+      reorderQuantity: 50,
+      expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 2))
     });
 
     // Populate references
@@ -201,6 +205,52 @@ exports.getProductById = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+// @desc    Create new review
+// @route   POST /api/products/:id/reviews
+// @access  Private
+exports.createProductReview = async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+
+    const product = await Product.findById(req.params.id);
+    const user = await User.findById(req.user.id);
+
+    if (product) {
+      const alreadyReviewed = product.reviews.find(
+        (r) => r.user.toString() === req.user.id.toString()
+      );
+
+      if (alreadyReviewed) {
+        return res.status(400).json({
+          success: false,
+          message: 'Product already reviewed',
+        });
+      }
+
+      const review = {
+        name: user ? `${user.firstName} ${user.lastName}` : 'Anonymous',
+        rating: Number(rating),
+        comment,
+        user: req.user.id,
+      };
+
+      product.reviews.push(review);
+      product.numReviews = product.reviews.length;
+      product.rating =
+        product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
+
+      await product.save();
+
+      res.status(201).json({ success: true, message: 'Review added' });
+    } else {
+      res.status(404).json({ success: false, message: 'Product not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

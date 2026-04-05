@@ -48,10 +48,10 @@ const Navbar = () => {
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
               
-              {/* Phân Quyền Navbar: Chỉ hiển thị nút Panel nếu là Admin/Manager */}
+              {/* Phân Quyền Navbar: Chỉ hiển thị nút Panel nếu là Admin/Manager/Pharmacist */}
               {(user.role?.name === 'Admin' || user.role?.name === 'Manager' || user.role?.name === 'Pharmacist') && (
-                <Link to="/admin" className="text-gradient" style={{ fontWeight: 'bold', border: '1px solid var(--primary)', padding: '5px 10px', borderRadius: '8px' }}>
-                  ⚙️ Quản Trị
+                <Link to={user.role?.name === 'Manager' ? "/manager" : "/admin"} className="text-gradient" style={{ fontWeight: 'bold', border: '1px solid var(--primary)', padding: '5px 10px', borderRadius: '8px' }}>
+                  ⚙️ {user.role?.name === 'Manager' ? 'Quản Lý Store' : 'Quản Trị'}
                 </Link>
               )}
 

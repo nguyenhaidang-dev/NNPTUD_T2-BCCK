@@ -499,3 +499,62 @@ exports.getOrderStats = async (req, res) => {
     });
   }
 };
+
+// @desc    Get advanced statistics for charts
+// @route   GET /api/orders/stats/advanced
+// @access  Private/Admin
+exports.getAdvancedStats = async (req, res) => {
+  try {
+    // 1. Sales by Day (Last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const dailyRevenue = await Order.aggregate([
+      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          revenue: { $sum: "$totalAmount" },
+          orders: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Format for Recharts
+    const chartData = dailyRevenue.map(item => ({
+      date: item._id,
+      revenue: item.revenue,
+      orders: item.orders
+    }));
+
+    // 2. Order Status Distribution (For Pie Chart)
+    const statusDistribution = await Order.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    const pieData = statusDistribution.map(item => ({
+      name: item._id,
+      value: item.count
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        revenueChart: chartData,
+        statusPie: pieData
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

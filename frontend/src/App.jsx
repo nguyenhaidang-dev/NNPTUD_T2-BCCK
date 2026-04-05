@@ -7,6 +7,7 @@ import LoginRegister from './pages/LoginRegister';
 import Checkout from './pages/Checkout';
 import AdminDashboard from './pages/AdminDashboard';
 import UserProfile from './pages/UserProfile';
+import ProductDetails from './pages/ProductDetails';
 import { useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -53,6 +54,7 @@ function App() {
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+            <Route path="/product/:id" element={<ProductDetails />} />
           </Routes>
         </div>
       </Router>

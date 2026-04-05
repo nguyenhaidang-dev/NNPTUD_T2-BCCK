@@ -7,13 +7,16 @@ import { useAuth } from '../context/AuthContext';
 const UserProfile = () => {
   const { user, logout } = useAuth();
   const [orders, setOrders] = useState([]);
-  const [activeTab, setActiveTab] = useState('orders'); // 'orders' or 'password'
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [activeTab, setActiveTab] = useState('orders'); // 'orders', 'rx', 'password'
   
   const [passData, setPassData] = useState({ currentPassword: '', newPassword: '', newPasswordConfirm: '' });
 
   useEffect(() => {
     if (activeTab === 'orders') {
       fetchMyOrders();
+    } else if (activeTab === 'rx') {
+      fetchMyPrescriptions();
     }
   }, [activeTab]);
 
@@ -23,6 +26,18 @@ const UserProfile = () => {
       setOrders(res.data.data);
     } catch (err) {
       toast.error('Lỗi lấy lịch sử đặt hàng');
+    }
+  };
+
+  const fetchMyPrescriptions = async () => {
+    const tid = toast.loading('Đang lấy đơn y lệnh...');
+    try {
+      const res = await axiosClient.get('/prescriptions/my-prescriptions');
+      setPrescriptions(res.data.data || []);
+      toast.dismiss(tid);
+    } catch (err) {
+      toast.dismiss(tid);
+      toast.error('Lỗi lấy đơn y lệnh');
     }
   };
 
@@ -88,6 +103,17 @@ const UserProfile = () => {
           <button 
             className="btn-primary"
             style={{ 
+              background: activeTab === 'rx' ? 'rgba(255,255,255,0.1)' : 'transparent', 
+              color: 'var(--text-main)', textAlign: 'left', padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: 'none'
+            }}
+            onClick={() => setActiveTab('rx')}
+          >
+            📋 Đơn Thuốc (Y Lệnh)
+          </button>
+          
+          <button 
+            className="btn-primary"
+            style={{ 
               background: activeTab === 'password' ? 'rgba(255,255,255,0.1)' : 'transparent', 
               color: 'var(--text-main)', textAlign: 'left', padding: '12px 15px', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: 'none'
             }}
@@ -123,9 +149,21 @@ const UserProfile = () => {
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mã: #{order._id.substring(0, 8)}...</span>
                       
                       <div style={{ display: 'flex', gap: '10px' }}>
-                        <span style={{ padding: '4px 10px', borderRadius: '15px', fontSize: '0.8rem', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>{order.orderStatus}</span>
+                        <span style={{ 
+                          padding: '4px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: 'bold',
+                          background: order.status === 'Pending' ? 'rgba(245, 158, 11, 0.2)' : 
+                                      order.status === 'Processing' ? 'rgba(59, 130, 246, 0.2)' :
+                                      order.status === 'Shipped' ? 'rgba(168, 85, 247, 0.2)' :
+                                      order.status === 'Delivered' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                          color: order.status === 'Pending' ? '#fbbf24' : 
+                                 order.status === 'Processing' ? '#3b82f6' :
+                                 order.status === 'Shipped' ? '#a855f7' :
+                                 order.status === 'Delivered' ? '#10b981' : '#ef4444'
+                        }}>
+                          {order.status}
+                        </span>
                         {/* Hiện nút huỷ nếu Pending */}
-                        {order.orderStatus === 'Pending' && (
+                        {order.status === 'Pending' && (
                            <button onClick={() => handleCancelOrder(order._id)} title="Hủy Đơn Này" style={{ background: 'transparent', color: 'var(--danger)' }}>
                              <XSquare size={20}/>
                            </button>
@@ -136,7 +174,7 @@ const UserProfile = () => {
                     <div style={{ marginBottom: '15px' }}>
                        {order.items?.map((i, idx) => (
                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '5px' }}>
-                              <span>{i.quantity}x {i.product?.name || "Thuốc không còn tồn tại"}</span>
+                               <span>{i.quantity}x {i.product?.name || "Thuốc/Sản phẩm"}</span>
                            </div>
                        ))}
                     </div>
@@ -144,6 +182,42 @@ const UserProfile = () => {
                     <div style={{ borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '15px', display: 'flex', justifyContent: 'space-between' }}>
                        <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Ngày: {new Date(order.createdAt).toLocaleDateString('vi-VN')}</span>
                        <span className="text-gradient" style={{ fontWeight: 'bold' }}>Thành tiền: {order.totalAmount?.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* PRESCRIPTION TAB */}
+        {activeTab === 'rx' && (
+          <div className="animate-fade-in">
+            <h2 style={{ borderBottom: 'var(--glass-border)', paddingBottom: '15px', marginBottom: '20px' }}>Hồ Sơ Y Lệnh</h2>
+            {prescriptions.length === 0 ? <p style={{ color: 'var(--text-muted)' }}>Bạn chưa có đơn y lệnh nào trong hệ thống.</p> : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {prescriptions.map(rx => (
+                  <div key={rx._id} style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Mã: #{rx.prescriptionNumber || rx._id.substring(0,8)}</span>
+                      <span style={{ 
+                         padding: '4px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: 'bold',
+                         background: rx.status === 'Approved' ? 'rgba(16,185,129,0.2)' : rx.status === 'Rejected' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)', 
+                         color: rx.status === 'Approved' ? '#10b981' : rx.status === 'Rejected' ? '#ef4444' : '#fbbf24'
+                      }}>
+                         {rx.status}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.9rem', marginBottom: '10px' }}>
+                        <div><strong>Bác sĩ:</strong> Dr. {rx.doctor?.name}</div>
+                        <div><strong>Ngày kê:</strong> {new Date(rx.prescriptionDate).toLocaleDateString()}</div>
+                        <div><strong>Ngày hết hạn:</strong> {new Date(rx.expiryDate).toLocaleDateString()}</div>
+                        <div>
+                             {rx.prescriptionImage ? (
+                                   <a href={`http://localhost:5000${rx.prescriptionImage}`} target="_blank" rel="noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>Xem ảnh y lệnh</a>
+                             ) : 'Không đính kèm ảnh'}
+                        </div>
                     </div>
                   </div>
                 ))}

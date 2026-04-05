@@ -17,11 +17,19 @@ router.get('/:id', authMiddleware.protect, orderController.getOrderById);
 router.put('/:id/cancel', authMiddleware.protect, orderController.cancelOrder);
 
 // Admin routes
+// Get order statistics
+router.get(
+  '/stats/advanced',
+  authMiddleware.protect,
+  authMiddleware.authorize('Admin', 'Manager', 'Pharmacist'),
+  orderController.getAdvancedStats
+);
+
 // Get all orders
 router.get(
   '/admin/all',
   authMiddleware.protect,
-  authMiddleware.admin,
+  authMiddleware.authorize('Admin', 'Manager', 'Pharmacist'),
   orderController.getAllOrders
 );
 
@@ -29,7 +37,7 @@ router.get(
 router.put(
   '/:id/status',
   authMiddleware.protect,
-  authMiddleware.admin,
+  authMiddleware.authorize('Admin', 'Manager', 'Pharmacist'),
   orderController.updateOrderStatus
 );
 

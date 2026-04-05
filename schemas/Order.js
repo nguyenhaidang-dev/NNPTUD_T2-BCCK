@@ -36,6 +36,14 @@ const orderSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'Shipping cost cannot be negative'],
     },
+    promotion: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Promotion',
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
     totalAmount: {
       type: Number,
       required: true,

@@ -11,6 +11,9 @@ router.get('/category/:categoryId', productController.getProductsByCategory);
 router.get('/prescription/required', productController.getPrescriptionRequiredProducts);
 router.get('/:id', productController.getProductById);
 
+// Protected routes (Customer can review)
+router.post('/:id/reviews', authMiddleware.protect, productController.createProductReview);
+
 // Protected routes (Admin/Manager only)
 router.post('/', authMiddleware.protect, authMiddleware.admin, uploadImage, productController.createProduct);
 router.put('/:id', authMiddleware.protect, authMiddleware.admin, uploadImage, productController.updateProduct);

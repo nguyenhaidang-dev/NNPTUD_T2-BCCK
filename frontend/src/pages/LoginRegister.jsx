@@ -24,7 +24,14 @@ const LoginRegister = () => {
 
     try {
       if (isLogin) {
-        await login(formData.email, formData.password);
+        const loginData = await login(formData.email, formData.password);
+        if (loginData?.user?.role?.name === 'Manager') {
+           navigate('/manager');
+        } else if (loginData?.user?.role?.name === 'Admin' || loginData?.user?.role?.name === 'Pharmacist') {
+           navigate('/admin');
+        } else {
+           navigate('/');
+        }
       } else {
         if (formData.password !== formData.passwordConfirm) {
           setError('Mật khẩu không khớp!');
@@ -32,8 +39,8 @@ const LoginRegister = () => {
           return;
         }
         await register(formData);
+        navigate('/');
       }
-      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại!');
     } finally {

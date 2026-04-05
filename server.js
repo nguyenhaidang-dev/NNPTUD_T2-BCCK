@@ -1,13 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const cors = require('cors');
+const morgan = require('morgan'); // Thêm thư viện dòm ngó API
 require('dotenv').config();
 
 const app = express();
 
-const cors = require('cors');
-
 // Middleware
+app.use(morgan('dev')); // Bật chế độ in log ra terminal cực đẹp
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -34,10 +35,17 @@ connectDB();
 
 // Routes
 app.use('/api/auth', require('./routes/auth.route'));
+app.use('/api/users', require('./routes/user.route'));
 app.use('/api/products', require('./routes/product.route'));
 app.use('/api/orders', require('./routes/order.route'));
 app.use('/api/prescriptions', require('./routes/prescription.route'));
-// app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/categories', require('./routes/category.route'));
+app.use('/api/manufacturers', require('./routes/manufacturer.route'));
+app.use('/api/marketing', require('./routes/marketing.route'));
+app.use('/api/roles', require('./routes/role.route'));
+app.use('/api/settings', require('./routes/setting.route'));
+app.use('/api/logs', require('./routes/log.route'));
+app.use('/api/reports', require('./routes/report.route'));
 // app.use('/api/inventory', require('./routes/inventoryRoutes'));
 
 // Basic API test route
